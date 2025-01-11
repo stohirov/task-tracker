@@ -1,13 +1,13 @@
 package entity;
 
+import service.TaskService;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Task {
 
-    public static int currentId = 0;
-
-    private final int id;
+    private int id;
 
     private String description;
 
@@ -18,7 +18,7 @@ public class Task {
     private String updatedAt;
 
     public Task(String description) {
-        this.id = currentId;
+        this.id = TaskService.randomId();
         this.description = description;
         this.status = Status.TODO;
         this.createdAt = getCurrentTimestamp();
@@ -40,6 +40,10 @@ public class Task {
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getDescription() {

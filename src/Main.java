@@ -1,20 +1,18 @@
+import entity.Status;
 import entity.Task;
 import service.TaskService;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        initializeFile();
+        TaskService.initializeFile();
 
         if (args.length == 0) {
 
-            System.out.println("Usage: task-cli <command> <parameters>");
+            System.out.println("Usage: java Main <command> <parameters>");
             return;
 
         }
@@ -23,58 +21,48 @@ public class Main {
         switch (command) {
             case "add":
                 if (args.length < 2) {
-                    printUsage();
+                    TaskService.printUsage();
                 }
                 tasks = TaskService.loadFromJsonFile();
-                tasks.add(new Task(args[1]));
+                tasks.add(TaskService.newTask(args[1]));
                 TaskService.saveToJsonFile(tasks);
                 break;
             case "list":
-                List<Task> loadedTasks = TaskService.loadFromJsonFile();
-                if (loadedTasks.isEmpty()) {
-                    System.out.println("No tasks found (empty array).");
-                    return;
+                String status = "";
+                if (args.length == 2) {
+                    status = args[1];
                 }
-                for (Task task: TaskService.loadFromJsonFile()) {
-                    System.out.println(task);
-                }
+                TaskService.loadByStatus(status);
                 break;
             case "update":
                 if (args .length < 2) {
-                    printUsage();
+                    TaskService.printUsage();
                     return;
                 }
                 TaskService.updateTask(Integer.parseInt(args[1]), args[2]);
                 break;
             case "delete":
                 if (args.length < 2) {
-                    printUsage();
+                    TaskService.printUsage();
                 }
                 TaskService.delete(Integer.parseInt(args[1]));
                 break;
-        }
-
-    }
-
-    private static void initializeFile() {
-        File file = new File(TaskService.FILE_PATH);
-        if (!file.exists()) {
-            try {
-                File parentDir = file.getParentFile();
-                if (parentDir != null) {
-                    parentDir.mkdirs();
+            case "mark-in-progress":
+                if (args.length > 1) {
+                    int id = Integer.parseInt(args[1]);
+                    TaskService.markByStatus(id, Status.IN_PROGRESS);
                 }
-                file.createNewFile();
-            } catch (IOException e) {
-                System.err.println("Error creating file: " + e.getMessage());
-            }
+                break;
+            case "mark-done":
+                if (args.length > 1) {
+                    int id = Integer.parseInt(args[1]);
+                    TaskService.markByStatus(id, Status.DONE);
+                }
+                break;
+            default:
+                TaskService.printUsage();
         }
+
     }
 
-    public static void printUsage() {
-        System.out.println("Usage:");
-        System.out.println("  task-cli add \"<task_description>\"  - Add a new task");
-        System.out.println("  task-cli list                       - List all tasks");
-        System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
-    }
 }

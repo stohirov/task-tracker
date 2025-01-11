@@ -1,9 +1,10 @@
 package service;
 
+import entity.Status;
 import entity.Task;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +19,6 @@ public class TaskService {
     public static void saveToJsonFile(List<Task> tasks) {
         StringBuilder json = new StringBuilder("[");
         for (int i = 0; i < tasks.size(); i++) {
-            Task.currentId = i + 1;
             json.append(tasks.get(i).toJson());
             if (i < tasks.size() - 1) {
                 json.append(",");
@@ -36,11 +36,6 @@ public class TaskService {
 
     public static void updateTask(int id, String description) {
         List<Task> tasks = loadFromJsonFile();
-        if (tasks.size() < id) {
-            System.out.println("You entered the wrong id");
-            return;
-        }
-
         for (Task task: tasks) {
             if (task.getId() == id) task.setDescription(description);
         }
@@ -92,6 +87,72 @@ public class TaskService {
             System.out.println("Error parsing the JSON: " + e.getMessage());
         }
         return tasks;
+    }
+
+    public static void loadByStatus(String status) {
+        List<Task> tasks = loadFromJsonFile();
+        switch (status) {
+            case "done":
+                for (Task task: tasks) {
+                    if (task.getStatus() == Status.DONE) System.out.println(task);
+                }
+                break;
+            case "in-progress":
+                for (Task task: tasks) {
+                    if (task.getStatus() == Status.IN_PROGRESS) System.out.println(task);
+                }
+                break;
+            case "todo":
+                for (Task task: tasks) {
+                    if (task.getStatus() == Status.TODO) System.out.println(task);
+                }
+                break;
+            default:
+                for (Task task: tasks) {
+                    System.out.println(task);
+                }
+        }
+    }
+
+    public static void markByStatus(int id, Status status) {
+        List<Task> tasks = loadFromJsonFile();
+        for (Task task: tasks) {
+            if (task.getId() == id) task.setStatus(status);
+        }
+        saveToJsonFile(tasks);
+    }
+
+    public static void initializeFile() {
+        File file = new File(FILE_PATH);
+        if (!file.exists()) {
+            try {
+                File parentDir = file.getParentFile();
+                if (parentDir != null) {
+                    parentDir.mkdirs();
+                }
+                file.createNewFile();
+            } catch (IOException e) {
+                System.err.println("Error creating file: " + e.getMessage());
+            }
+        }
+    }
+
+    public static Task newTask(String description) {
+        Task task = new Task(description);
+        task.setId(randomId());
+        return task;
+    }
+
+    public static void printUsage() {
+        System.out.println("Usage:");
+        System.out.println("  task-cli add \"<task_description>\"  - Add a new task");
+        System.out.println("  task-cli list                       - List all tasks");
+        System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
+    }
+
+    public static int randomId() {
+        double random = Math.random() * 100000;
+        return (int) random;
     }
 
 }
