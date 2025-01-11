@@ -5,9 +5,9 @@ import java.time.format.DateTimeFormatter;
 
 public class Task {
 
-    public static Long currentId = 1L;
+    public static int currentId = 0;
 
-    private final Long id;
+    private final int id;
 
     private String description;
 
@@ -18,14 +18,14 @@ public class Task {
     private String updatedAt;
 
     public Task(String description) {
-        this.id = currentId++;
+        this.id = currentId;
         this.description = description;
         this.status = Status.TODO;
         this.createdAt = getCurrentTimestamp();
         this.updatedAt = getCurrentTimestamp();
     }
 
-    public Task(Long id, String description, String currentStatus, String createdAt, String updatedAt) {
+    public Task(int id, String description, String currentStatus, String createdAt, String updatedAt) {
         this.id = id;
         this.description = description;
         this.status = Status.valueOf(currentStatus);
@@ -38,7 +38,7 @@ public class Task {
         return LocalDateTime.now().format(formatter);
     }
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
@@ -87,7 +87,7 @@ public class Task {
 
     public String toJson() {
         return "{" +
-                "\"id\": \"" + this.id + "," +
+                "\"id\": \"" + this.id + "\"," +
                 "\"description\": \"" + this.description + "\"," +
                 "\"status\": \"" + this.status + "\"," +
                 "\"createdAt\": \"" + this.createdAt + "\"," +
@@ -96,8 +96,10 @@ public class Task {
     }
 
     public static Task fromJson(String json) {
-        String[] parts = json.replace("{", "").replace("}", "").split(",");
-        Long id = Long.valueOf(parts[0].split(":")[1].replace("\"", "").trim());
+        String[] parts = json.replace("{", "")
+                .replace("}", "")
+                .split(",");
+        int id = Integer.parseInt(parts[0].split(":")[1].replace("\"", "").trim());
         String description = parts[1].split(":")[1].replace("\"", "").trim();
         String currentStatus = parts[2].split(":")[1].replace("\"", "").trim();
         String createdAt = parts[3].split(":")[1].replace("\"", "").trim();

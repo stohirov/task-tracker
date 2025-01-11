@@ -18,22 +18,39 @@ public class Main {
             return;
 
         }
-        List<Task> tasks = new ArrayList<>();
+        List<Task> tasks;
         String command = args[0];
         switch (command) {
             case "add":
+                if (args.length < 2) {
+                    printUsage();
+                }
+                tasks = TaskService.loadFromJsonFile();
                 tasks.add(new Task(args[1]));
                 TaskService.saveToJsonFile(tasks);
                 break;
             case "list":
                 List<Task> loadedTasks = TaskService.loadFromJsonFile();
                 if (loadedTasks.isEmpty()) {
-                    System.out.println("Did you add some tasks? cus I see nothing!");
+                    System.out.println("No tasks found (empty array).");
                     return;
                 }
                 for (Task task: TaskService.loadFromJsonFile()) {
                     System.out.println(task);
                 }
+                break;
+            case "update":
+                if (args .length < 2) {
+                    printUsage();
+                    return;
+                }
+                TaskService.updateTask(Integer.parseInt(args[1]), args[2]);
+                break;
+            case "delete":
+                if (args.length < 2) {
+                    printUsage();
+                }
+                TaskService.delete(Integer.parseInt(args[1]));
                 break;
         }
 
@@ -52,5 +69,12 @@ public class Main {
                 System.err.println("Error creating file: " + e.getMessage());
             }
         }
+    }
+
+    public static void printUsage() {
+        System.out.println("Usage:");
+        System.out.println("  task-cli add \"<task_description>\"  - Add a new task");
+        System.out.println("  task-cli list                       - List all tasks");
+        System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
     }
 }
