@@ -41,13 +41,15 @@ public class TaskService {
             return;
         }
 
-        tasks.get(id - 1).setDescription(description);
+        for (Task task: tasks) {
+            if (task.getId() == id) task.setDescription(description);
+        }
         saveToJsonFile(tasks);
     }
 
     public static void delete(int id) {
         List<Task> tasks = loadFromJsonFile();
-        tasks.remove(id - 1);
+        tasks.removeIf(task -> task.getId() == id);
         cleanJsonFileIfEmpty();
         saveToJsonFile(tasks);
     }
