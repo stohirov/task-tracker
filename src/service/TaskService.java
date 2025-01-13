@@ -14,7 +14,7 @@ import java.util.List;
 
 public class TaskService {
 
-    public static String FILE_PATH = "/Users/misu/IdeaProjects/task-tracker/src/resources/tasks.json";
+    public static String FILE_PATH = "task-tracker/src/resources/tasks.json";
 
     public static void saveToJsonFile(List<Task> tasks) {
         StringBuilder json = new StringBuilder("[");
@@ -139,7 +139,7 @@ public class TaskService {
 
     public static Task newTask(String description) {
         Task task = new Task(description);
-        task.setId(randomId());
+        task.setId(Task.randomId());
         return task;
     }
 
@@ -150,9 +150,16 @@ public class TaskService {
         System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
     }
 
-    public static int randomId() {
-        double random = Math.random() * 100000;
-        return (int) random;
+    public static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
 }

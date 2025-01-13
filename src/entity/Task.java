@@ -18,7 +18,7 @@ public class Task {
     private String updatedAt;
 
     public Task(String description) {
-        this.id = TaskService.randomId();
+        this.id = randomId();
         this.description = description;
         this.status = Status.TODO;
         this.createdAt = getCurrentTimestamp();
@@ -109,5 +109,10 @@ public class Task {
         String createdAt = parts[3].split(":")[1].replace("\"", "").trim();
         String updatedAt = parts[4].split(":")[1].replace("\"", "").trim();
         return new Task(id, description, currentStatus, createdAt, updatedAt);
+    }
+
+    public static int randomId() {
+        double random = Math.random() * 100000;
+        return (int) random;
     }
 }

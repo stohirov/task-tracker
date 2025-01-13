@@ -22,6 +22,7 @@ public class Main {
             case "add":
                 if (args.length < 2) {
                     TaskService.printUsage();
+                    return;
                 }
                 tasks = TaskService.loadFromJsonFile();
                 tasks.add(TaskService.newTask(args[1]));
@@ -39,22 +40,28 @@ public class Main {
                     TaskService.printUsage();
                     return;
                 }
-                TaskService.updateTask(Integer.parseInt(args[1]), args[2]);
+                if (TaskService.isNumeric(args[2])) TaskService.updateTask(Integer.parseInt(args[1]), args[2]);
+                else System.out.println("Pls enter a number");
+
                 break;
             case "delete":
                 if (args.length < 2) {
                     TaskService.printUsage();
+                    return;
                 }
-                TaskService.delete(Integer.parseInt(args[1]));
+                if (TaskService.isNumeric(args[1])) TaskService.delete(Integer.parseInt(args[1]));
+                else System.out.println("Pls enter a number");
                 break;
             case "mark-in-progress":
                 if (args.length > 1) {
+                    if (!TaskService.isNumeric(args[1])) return;
                     int id = Integer.parseInt(args[1]);
                     TaskService.markByStatus(id, Status.IN_PROGRESS);
                 }
                 break;
             case "mark-done":
                 if (args.length > 1) {
+                    if (!TaskService.isNumeric(args[1])) return;
                     int id = Integer.parseInt(args[1]);
                     TaskService.markByStatus(id, Status.DONE);
                 }
