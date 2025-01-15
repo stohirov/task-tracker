@@ -5,11 +5,13 @@ import java.util.Optional;
 
 public class Main {
 
+    private static final TaskService taskService = new TaskService();
+
     public static void main(String[] args) {
 
         if (args.length == 0) {
             System.out.println("Usage: java Main <command> <parameters>");
-            TaskService.printUsage();
+            taskService.printUsage();
             return;
 
         }
@@ -24,7 +26,7 @@ public class Main {
             case "mark-done" -> handleMarkCommands(args, Status.DONE);
             default -> {
                 System.out.println("Unknown command!");
-                TaskService.printUsage();
+                taskService.printUsage();
             }
         }
 
@@ -32,7 +34,7 @@ public class Main {
 
     private static void handleListCommand(String[] args) {
         String status = args.length > 1 ? args[1] : "";
-        TaskService.loadByStatus(status);
+        taskService.loadByStatus(status);
     }
 
     private static void handleMarkCommands(String[] args, Status status) {
@@ -40,19 +42,19 @@ public class Main {
             System.out.println("Not enough arguments!");
             return;
         }
-        Optional<Integer> id = TaskService.isNumeric(args[1]);
-        if (id.isPresent()) TaskService.markByStatus(id.get(), status);
+        Optional<Integer> id = taskService.isNumeric(args[1]);
+        if (id.isPresent()) taskService.markByStatus(id.get(), status);
         else System.out.println("Input mismatch error!");
     }
 
     private static void handleDeleteCommand(String[] args) {
         if (args.length < 2) {
-            TaskService.printUsage();
+            taskService.printUsage();
             return;
         }
-        Optional<Integer> id = TaskService.isNumeric(args[1]);
+        Optional<Integer> id = taskService.isNumeric(args[1]);
         if (id.isPresent()) {
-            TaskService.delete(id.get());
+            taskService.delete(id.get());
         } else {
             System.out.println("Input mismatch error!");
         }
@@ -60,24 +62,24 @@ public class Main {
 
     private static void handleUpdateCommand(String[] args) {
         if (args.length < 3) {
-            TaskService.printUsage();
+            taskService.printUsage();
             return;
         }
-        Optional<Integer> id = TaskService.isNumeric(args[1]);
+        Optional<Integer> id = taskService.isNumeric(args[1]);
         if (id.isEmpty()) {
-            TaskService.printUsage();
+            taskService.printUsage();
         } else {
-            TaskService.updateTask(id.get(), args[2]);
+            taskService.updateTask(id.get(), args[2]);
         }
     }
 
     private static void handleAddCommand(String[] args) {
         if (args.length < 2) {
-            TaskService.printUsage();
+            taskService.printUsage();
             return;
         }
 
-        TaskService.newTask(args[1]);
+        taskService.newTask(args[1]);
         System.out.println("Task added successfully!");
     }
 

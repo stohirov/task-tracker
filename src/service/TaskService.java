@@ -19,18 +19,18 @@ public class TaskService {
             File.separator + "task-tracker" + File.separator + "tasks.json";
     private static final Map<Integer, Task> tasks = new HashMap<>();
 
-    static {
+    {
         initializeFile();
         loadFromJsonFile();
     }
 
-    private static String convertTasksToJson() {
+    private String convertTasksToJson() {
         return tasks.values().stream()
                 .map(Task::toJson)
                 .collect(Collectors.joining(",", "[", "]"));
     }
 
-    private static void writeJsonToFile(String json) {
+    private void writeJsonToFile(String json) {
         try(FileWriter fileWriter = new FileWriter(FILE_PATH)) {
             fileWriter.write(json);
         } catch (IOException ex) {
@@ -38,12 +38,12 @@ public class TaskService {
         }
     }
 
-    public static void saveTasks() {
+    public void saveTasks() {
         String json = convertTasksToJson();
         writeJsonToFile(json);
     }
 
-    public static void updateTask(int id, String description) {
+    public void updateTask(int id, String description) {
         Task task = tasks.get(id);
         if (task != null) {
             task.setDescription(description);
@@ -54,7 +54,7 @@ public class TaskService {
         }
     }
 
-    public static void delete(int id) {
+    public void delete(int id) {
         if (tasks.remove(id) != null) {
             saveTasks();
         } else {
@@ -62,7 +62,7 @@ public class TaskService {
         }
     }
 
-    public static void loadFromJsonFile() {
+    public void loadFromJsonFile() {
         try {
             String json = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
 
@@ -85,7 +85,7 @@ public class TaskService {
         }
     }
 
-    public static void loadByStatus(String status) {
+    public void loadByStatus(String status) {
         Status taskStatus = Status.valueOf("");
         try {
             taskStatus = Status.valueOf(status.toUpperCase());
@@ -98,7 +98,7 @@ public class TaskService {
                 .forEach(System.out::println);
     }
 
-    public static void markByStatus(int id, Status status) {
+    public void markByStatus(int id, Status status) {
         Task task = tasks.get(id);
         if (task != null) {
             task.setStatus(status);
@@ -109,7 +109,7 @@ public class TaskService {
         }
     }
 
-    public static void initializeFile() {
+    public void initializeFile() {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
             try {
@@ -124,20 +124,20 @@ public class TaskService {
         }
     }
 
-    public static void newTask(String description) {
+    public void newTask(String description) {
         Task task = new Task(description);
         tasks.put(task.getId(), task);
         saveTasks();
     }
 
-    public static void printUsage() {
+    public void printUsage() {
         System.out.println("Usage:");
         System.out.println("  task-cli add \"<task_description>\"  - Add a new task");
         System.out.println("  task-cli list                       - List all tasks");
         System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
     }
 
-    public static Optional<Integer> isNumeric(String str) {
+    public Optional<Integer> isNumeric(String str) {
         if (str == null || str.isEmpty()) {
             return Optional.empty();
         }
