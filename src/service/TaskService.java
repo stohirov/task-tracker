@@ -9,76 +9,73 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TaskService {
 
-    public static String FILE_PATH = "task-tracker/src/resources/tasks.json";
+    public static String FILE_PATH = System.getProperty("user.home") +
+            File.separator + "task-tracker" + File.separator + "tasks.json";
+    private static final Map<Integer, Task> tasks = new HashMap<>();
 
-    public static void saveToJsonFile(List<Task> tasks) {
-        StringBuilder json = new StringBuilder("[");
-        for (int i = 0; i < tasks.size(); i++) {
-            json.append(tasks.get(i).toJson());
-            if (i < tasks.size() - 1) {
-                json.append(",");
-            }
-        }
+    static {
+        initializeFile();
+        loadFromJsonFile();
+    }
 
-        json.append("]");
-        try(FileWriter fileWriter = new FileWriter(TaskService.FILE_PATH)) {
-            fileWriter.write(json.toString());
-            System.out.println("Tasks saved successfully!");
+    private static String convertTasksToJson() {
+        return tasks.values().stream()
+                .map(Task::toJson)
+                .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private static void writeJsonToFile(String json) {
+        try(FileWriter fileWriter = new FileWriter(FILE_PATH)) {
+            fileWriter.write(json);
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
 
+    public static void saveTasks() {
+        String json = convertTasksToJson();
+        writeJsonToFile(json);
+    }
+
     public static void updateTask(int id, String description) {
-        List<Task> tasks = loadFromJsonFile();
-        for (Task task: tasks) {
-            if (task.getId() == id) task.setDescription(description);
+        Task task = tasks.get(id);
+        if (task != null) {
+            task.setDescription(description);
+            task.setUpdatedAt(LocalDateTime.now());
+            saveTasks();
+        } else {
+            System.out.println("Task with ID: " + id + " not found!");
         }
-        saveToJsonFile(tasks);
     }
 
     public static void delete(int id) {
-        List<Task> tasks = loadFromJsonFile();
-        tasks.removeIf(task -> task.getId() == id);
-        cleanJsonFileIfEmpty();
-        saveToJsonFile(tasks);
-    }
-
-    public static void cleanJsonFileIfEmpty() {
-        try {
-            String content = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
-            if (content.trim().equals("[]")) {
-                try (FileWriter writer = new FileWriter(FILE_PATH)) {
-                    writer.write("");
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error handling the JSON file: " + e.getMessage());
+        if (tasks.remove(id) != null) {
+            saveTasks();
+        } else {
+            System.out.println("Task with id: " + id + " not found!");
         }
     }
 
-    public static List<Task> loadFromJsonFile() {
-        List<Task> tasks = new ArrayList<>();
+    public static void loadFromJsonFile() {
         try {
             String json = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
 
-            if (json.trim().equals("[]") || json.isEmpty()) {
-                return tasks;
-            }
+            if (!json.trim().equals("[]") || !json.isEmpty()) {
+                String content = json.substring(1, json.length() - 1);
+                String[] taskObjects = content.split("\\},\\s*\\{");
 
-            String content = json.substring(1, json.length() - 1);
-            String[] taskObjects = content.split("\\},\\s*\\{");
+                for (String taskJson : taskObjects) {
+                    String formattedJson = "{" + taskJson + "}";
 
-            for (String taskJson : taskObjects) {
-                String formattedJson = "{" + taskJson + "}";
-
-                Task task = Task.fromJson(formattedJson);
-                tasks.add(task);
+                    Task task = Task.fromJson(formattedJson);
+                    tasks.put(task.getId(), task);
+                }
             }
 
         } catch (IOException e) {
@@ -86,40 +83,30 @@ public class TaskService {
         } catch (Exception e) {
             System.out.println("Error parsing the JSON: " + e.getMessage());
         }
-        return tasks;
     }
 
     public static void loadByStatus(String status) {
-        List<Task> tasks = loadFromJsonFile();
-        switch (status) {
-            case "done":
-                for (Task task: tasks) {
-                    if (task.getStatus() == Status.DONE) System.out.println(task);
-                }
-                break;
-            case "in-progress":
-                for (Task task: tasks) {
-                    if (task.getStatus() == Status.IN_PROGRESS) System.out.println(task);
-                }
-                break;
-            case "todo":
-                for (Task task: tasks) {
-                    if (task.getStatus() == Status.TODO) System.out.println(task);
-                }
-                break;
-            default:
-                for (Task task: tasks) {
-                    System.out.println(task);
-                }
+        Status taskStatus = Status.valueOf("");
+        try {
+            taskStatus = Status.valueOf(status.toUpperCase());
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
         }
+        Status finalTaskStatus = taskStatus;
+        tasks.values().stream()
+                .filter(task -> task.getStatus() == finalTaskStatus)
+                .forEach(System.out::println);
     }
 
     public static void markByStatus(int id, Status status) {
-        List<Task> tasks = loadFromJsonFile();
-        for (Task task: tasks) {
-            if (task.getId() == id) task.setStatus(status);
+        Task task = tasks.get(id);
+        if (task != null) {
+            task.setStatus(status);
+            task.setUpdatedAt(LocalDateTime.now());
+            saveTasks();
+        } else {
+            System.out.println("Couldn't find the task with the id: " + id);
         }
-        saveToJsonFile(tasks);
     }
 
     public static void initializeFile() {
@@ -139,7 +126,8 @@ public class TaskService {
 
     public static Task newTask(String description) {
         Task task = new Task(description);
-        task.setId(Task.randomId());
+        tasks.put(task.getId(), task);
+        saveTasks();
         return task;
     }
 
@@ -150,15 +138,14 @@ public class TaskService {
         System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
     }
 
-    public static boolean isNumeric(String str) {
+    public static Optional<Integer> isNumeric(String str) {
         if (str == null || str.isEmpty()) {
-            return false;
+            return Optional.empty();
         }
         try {
-            Integer.parseInt(str);
-            return true;
+            return Optional.of(Integer.parseInt(str));
         } catch (NumberFormatException e) {
-            return false;
+            return Optional.empty();
         }
     }
 

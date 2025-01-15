@@ -1,11 +1,11 @@
 package entity;
 
-import service.TaskService;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Task {
+
+    private static int idCounter = 0;
 
     private int id;
 
@@ -13,19 +13,19 @@ public class Task {
 
     private Status status;
 
-    private String createdAt;
+    private LocalDateTime createdAt;
 
-    private String updatedAt;
+    private LocalDateTime updatedAt;
 
     public Task(String description) {
-        this.id = randomId();
+        this.id = generateId();
         this.description = description;
         this.status = Status.TODO;
         this.createdAt = getCurrentTimestamp();
         this.updatedAt = getCurrentTimestamp();
     }
 
-    public Task(int id, String description, String currentStatus, String createdAt, String updatedAt) {
+    public Task(int id, String description, String currentStatus, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.description = description;
         this.status = Status.valueOf(currentStatus);
@@ -33,9 +33,8 @@ public class Task {
         this.updatedAt = updatedAt;
     }
 
-    private String getCurrentTimestamp() {
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        return LocalDateTime.now().format(formatter);
+    private LocalDateTime getCurrentTimestamp() {
+        return LocalDateTime.now();
     }
 
     public int getId() {
@@ -62,19 +61,19 @@ public class Task {
         this.status = status;
     }
 
-    public String getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public String getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(String updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -106,13 +105,12 @@ public class Task {
         int id = Integer.parseInt(parts[0].split(":")[1].replace("\"", "").trim());
         String description = parts[1].split(":")[1].replace("\"", "").trim();
         String currentStatus = parts[2].split(":")[1].replace("\"", "").trim();
-        String createdAt = parts[3].split(":")[1].replace("\"", "").trim();
-        String updatedAt = parts[4].split(":")[1].replace("\"", "").trim();
+        LocalDateTime createdAt = LocalDateTime.parse(parts[3].split(":")[1].replace("\"", "").trim());
+        LocalDateTime updatedAt = LocalDateTime.parse(parts[4].split(":")[1].replace("\"", "").trim());
         return new Task(id, description, currentStatus, createdAt, updatedAt);
     }
 
-    public static int randomId() {
-        double random = Math.random() * 100000;
-        return (int) random;
+    public static synchronized int generateId() {
+        return ++idCounter;
     }
 }
