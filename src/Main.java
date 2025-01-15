@@ -42,7 +42,7 @@ public class Main {
             System.out.println("Not enough arguments!");
             return;
         }
-        Optional<Integer> id = taskService.isNumeric(args[1]);
+        Optional<Integer> id = taskService.checkIfNumeric(args[1]);
         if (id.isPresent()) taskService.markByStatus(id.get(), status);
         else System.out.println("Input mismatch error!");
     }
@@ -52,7 +52,7 @@ public class Main {
             taskService.printUsage();
             return;
         }
-        Optional<Integer> id = taskService.isNumeric(args[1]);
+        Optional<Integer> id = taskService.checkIfNumeric(args[1]);
         if (id.isPresent()) {
             taskService.delete(id.get());
         } else {
@@ -65,7 +65,7 @@ public class Main {
             taskService.printUsage();
             return;
         }
-        Optional<Integer> id = taskService.isNumeric(args[1]);
+        Optional<Integer> id = taskService.checkIfNumeric(args[1]);
         if (id.isEmpty()) {
             taskService.printUsage();
         } else {

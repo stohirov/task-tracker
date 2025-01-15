@@ -88,28 +88,6 @@ public class Task {
                 '}';
     }
 
-    public String toJson() {
-        return "{" +
-                "\"id\": \"" + this.id + "\"," +
-                "\"description\": \"" + this.description + "\"," +
-                "\"status\": \"" + this.status + "\"," +
-                "\"createdAt\": \"" + this.createdAt + "\"," +
-                "\"updatedAt\": \"" + this.updatedAt + "\"" +
-                "}";
-    }
-
-    public static Task fromJson(String json) {
-        String[] parts = json.replace("{", "")
-                .replace("}", "")
-                .split(",");
-        int id = Integer.parseInt(parts[0].split(":")[1].replace("\"", "").trim());
-        String description = parts[1].split(":")[1].replace("\"", "").trim();
-        String currentStatus = parts[2].split(":")[1].replace("\"", "").trim();
-        LocalDateTime createdAt = LocalDateTime.parse(parts[3].split(":")[1].replace("\"", "").trim());
-        LocalDateTime updatedAt = LocalDateTime.parse(parts[4].split(":")[1].replace("\"", "").trim());
-        return new Task(id, description, currentStatus, createdAt, updatedAt);
-    }
-
     public static synchronized int generateId() {
         return ++idCounter;
     }

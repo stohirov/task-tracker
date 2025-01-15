@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,7 +27,7 @@ public class TaskService {
 
     private String convertTasksToJson() {
         return tasks.values().stream()
-                .map(Task::toJson)
+                .map(this::toJson)
                 .collect(Collectors.joining(",", "[", "]"));
     }
 
@@ -73,7 +74,7 @@ public class TaskService {
                 for (String taskJson : taskObjects) {
                     String formattedJson = "{" + taskJson + "}";
 
-                    Task task = Task.fromJson(formattedJson);
+                    Task task = fromJson(formattedJson);
                     tasks.put(task.getId(), task);
                 }
             }
@@ -86,16 +87,17 @@ public class TaskService {
     }
 
     public void loadByStatus(String status) {
-        Status taskStatus = Status.valueOf("");
-        try {
-            taskStatus = Status.valueOf(status.toUpperCase());
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+        Status taskStatus = null;
+        if (!status.isEmpty()) taskStatus = Status.valueOf(status.toUpperCase());
+
+        if (taskStatus == null) {
+            tasks.values().forEach(System.out::println);
+        } else {
+            Status finalTaskStatus = taskStatus;
+            tasks.values().stream()
+                    .filter(task -> task.getStatus() == finalTaskStatus)
+                    .forEach(System.out::println);
         }
-        Status finalTaskStatus = taskStatus;
-        tasks.values().stream()
-                .filter(task -> task.getStatus() == finalTaskStatus)
-                .forEach(System.out::println);
     }
 
     public void markByStatus(int id, Status status) {
@@ -131,13 +133,14 @@ public class TaskService {
     }
 
     public void printUsage() {
-        System.out.println("Usage:");
-        System.out.println("  task-cli add \"<task_description>\"  - Add a new task");
-        System.out.println("  task-cli list                       - List all tasks");
-        System.out.println("  task-cli update <id> <new description>         - Updates the tasks where id = ?");
+        System.out.println("""
+                task-cli add \\"<task_description>\\"  - Add a new task
+                task-cli list                       - List all tasks
+                task-cli update <id> <new description>         - Updates the tasks where id = ?
+                """);
     }
 
-    public Optional<Integer> isNumeric(String str) {
+    public Optional<Integer> checkIfNumeric(String str) {
         if (str == null || str.isEmpty()) {
             return Optional.empty();
         }
@@ -145,6 +148,41 @@ public class TaskService {
             return Optional.of(Integer.parseInt(str));
         } catch (NumberFormatException e) {
             return Optional.empty();
+        }
+    }
+
+    public String toJson(Task task) {
+        return "{" +
+                "\"id\": \"" + task.getId() + "\"," +
+                "\"description\": \"" + task.getDescription() + "\"," +
+                "\"status\": \"" + task.getStatus() + "\"," +
+                "\"createdAt\": \"" + task.getCreatedAt()+ "\"," +
+                "\"updatedAt\": \"" + task.getUpdatedAt() + "\"" +
+                "}";
+    }
+
+    public static Task fromJson(String json) {
+        String[] parts = json.replace("{", "")
+                .replace("}", "")
+                .split(",");
+        int id = Integer.parseInt(parts[0].split(":")[1].replace("\"", "").trim());
+        String description = parts[1].split(":")[1].replace("\"", "").trim();
+        String currentStatus = parts[2].split(":")[1].replace("\"", "").trim();
+        LocalDateTime createdAt = parseDateTime(parts[3].split(":")[1].replace("\"", "").trim());
+        LocalDateTime updatedAt = parseDateTime((parts[4].split(":")[1].replace("\"", "").trim()));
+        return new Task(id, description, currentStatus, createdAt, updatedAt);
+    }
+
+    private static LocalDateTime parseDateTime(String dateTime) {
+        try {
+            return LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception e) {
+            if (dateTime.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}")) {
+                dateTime += ":00:00";
+                return LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } else {
+                throw new IllegalArgumentException("Invalid date-time format: " + dateTime);
+            }
         }
     }
 
