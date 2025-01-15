@@ -124,11 +124,10 @@ public class TaskService {
         }
     }
 
-    public static Task newTask(String description) {
+    public static void newTask(String description) {
         Task task = new Task(description);
         tasks.put(task.getId(), task);
         saveTasks();
-        return task;
     }
 
     public static void printUsage() {
